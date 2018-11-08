@@ -1,0 +1,5 @@
+.idea
+*.sol
+*.lp
+*.log
+*.iml
