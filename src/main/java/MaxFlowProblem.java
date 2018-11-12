@@ -2,22 +2,31 @@ import gurobi.*;
 
 public class MaxFlowProblem {
 
-    private static final int s = 0;
-    private static final int t = 7;
-    private static final int anzahlKnoten = 8;
-    private static final int[][] kanten = {{s, 1, 3},
-            {s, 2, 2},
-            {s, 3, 4},
-            {1, 4, 5},
-            {1, 2, 1},
+    private static final int s = 1;
+    private static final int t = 10;
+    private static final int anzahlKnoten = 10;
+    private static final int[][] kanten = {
+            {s, 2, 10},
+            {s, 3, 2},
+            {s, 4, 3},
             {2, 3, 2},
             {2, 5, 6},
-            {3, 5, 8},
-            {3, 6, 1},
-            {4, 2, 3},
-            {4, t, 1},
-            {5, t, 5},
-            {6, t, 3}};
+            {2, 6, 3},
+            {3, 6, 2},
+            {3, 7, 7},
+            {4, 3, 4},
+            {4, 6, 2},
+            {4, 7, 7},
+            {5, 3, 5},
+            {5, 6, 2},
+            {5, 8, 4},
+            {6, 8, 2},
+            {6, 9, 2},
+            {6, 7, 3},
+            {7, 9, 8},
+            {8, 9, 1},
+            {8, t, 5},
+            {9, t, 12}};
     private static final int anzahlKanten = kanten.length;
     private static final int indexAusgangsknoten = 0;
     private static final int indexEingangsknoten = 1;
@@ -57,7 +66,7 @@ public class MaxFlowProblem {
         GRBLinExpr linkeSeite;
         GRBLinExpr rechteSeite;
 
-        for (int v = 0; v < anzahlKnoten; v++) {
+        for (int v = 1; v <= anzahlKnoten; v++) {
             linkeSeite = new GRBLinExpr();
             rechteSeite = new GRBLinExpr();
 
@@ -76,11 +85,41 @@ public class MaxFlowProblem {
             }
         }
 
+
         //solve
         model.optimize();
 
-        model.write("maxFlowProblem.lp");
-        model.write("maxFlowProblem.sol");
+        model.write("5.3a-flow.lp");
+        model.write("5.3a-flow.sol");
+
+
+        //b)
+        int[] knotenLimit = {-1, 10, 7, 5, 7, 6, 7, 6, 10, -1};
+
+        GRBLinExpr knoten;
+        GRBLinExpr limit;
+
+        for (int v = 0; v < knotenLimit.length; v++) {
+            knoten = new GRBLinExpr();
+            limit = new GRBLinExpr();
+
+            if (knotenLimit[v] > 0) {
+                for (int e = 0; e < anzahlKanten; e++) {
+                    if (kanten[e][indexEingangsknoten] == v) {
+                        knoten.addTerm(1, x[e]);
+                    }
+                }
+                limit.addConstant(knotenLimit[v]);
+                model.addConstr(knoten, GRB.LESS_EQUAL, limit, "limit_for_" + (v + 1));
+            }
+        }
+        model.update();
+
+        //solve
+        model.optimize();
+
+        model.write("5.3b-flow.lp");
+        model.write("5.3b-flow.sol");
 
         model.dispose();
         environment.dispose();
